@@ -11,37 +11,27 @@ from models import (Base, session,
 
 # ************ Function to display main menu
 def main_menu():
-    print("""
+    while True:
         
-        PROGRAMMING BOOKS
-        1) Add book
-        2) View all books
-        3) Search for a book
-        4) Book Analysis
-        5) Exit
+        print("""
+            
+            \nPROGRAMMING BOOKS
+            \r1) Add book
+            \r2) View all books
+            \r3) Search for a book
+            \r4) Book Analysis
+            \r5) Exit
 
-        """)
-    choice = input("What would you like to do ? ")
-    try:
-        choice = int(choice)
-        if choice not in [1, 2, 3, 4, 5]:
-            raise ValueError("Enter a choice between 1, 2, 3, 4, or 5")
-    except ValueError as e:
-        print("Incorrect choice entered")
-    else: 
-        match choice:
-            case 1: 
-                add_book()
-            case 2:
-                all_books()
-            case 3: 
-                search_book()
-            case 4:
-                book_analysis()
-            case _:
-                print("See you later")
-                sys.exit()
-
+            """)
+        choice = input("What would you like to do ? ")
+        if choice in ['1', '2', '3', '4', '5']:
+            return choice
+        else :
+            choice = input("""
+                        \rPlease choose one of the options above.
+                        \rA number from 1 to 5.
+                        \rPress enter to try again. """)
+        
 
 # display the menu inside the search module
 def search_menu():
@@ -120,6 +110,30 @@ def book_analysis():
     print("Total Number of Books: 14")
     print("Total Number of Python books: 8")
     main_menu()
+    
+    
+def app():
+    app_running = True
+    while app_running:
+        choice = main_menu()
+        match choice:
+            case '1':
+                # add_book()
+                pass
+            case '2':
+                # search book
+                pass
+            case '3':
+                # view book
+                pass
+            case '4':
+                # analysis
+                pass
+            case _:
+                print("GOODBYE")
+                app_running = False
 
 if __name__ == "__main__":
     Base.metadata.create_all(engine) 
+    app()
+    
