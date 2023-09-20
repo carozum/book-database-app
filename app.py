@@ -126,6 +126,11 @@ def clean_date(date_str):
     date = datetime.date(year, month, day)
     return date
 
+
+def clean_price(price_str):
+    price_float = float(price_str)
+    return int(price_float * 100)
+
 # import data
 def add_csv():
     # open file
@@ -135,12 +140,15 @@ def add_csv():
         # Iterate over each row in the csv 
         # file using reader object
         for row in data:
-            book = Book(
-                title=row[0], 
-                author=row[1], 
-                published_date=clean_date(row[2]), 
-                price=int(row[3]))
-            session.add(book)
+            # avoid duplicate books
+            book_in_db = session.query(Book).filter( Book.title == row[0]).one_or_none()
+            if book_in_db == None :
+                new_book = Book(
+                    title=row[0], 
+                    author=row[1], 
+                    published_date=clean_date(row[2]), 
+                    price=clean_price(row[3]))
+                session.add(new_book)
         session.commit()
 
 
@@ -167,7 +175,9 @@ def app():
 
 if __name__ == "__main__":
     Base.metadata.create_all(engine) 
-    # app()
-    #add_csv()
-    clean_date("August 12, 2012")
+    add_csv()
+    
+    for book in session.query(Book):
+        print(book)
+    #app()
     
