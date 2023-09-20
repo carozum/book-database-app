@@ -4,11 +4,10 @@ A console program :
 """
 
 import sys
-import models
+from models import (Base, session, 
+                    Book, engine)
 
 # ********** function for data cleaning in the database
-def data_cleaning():
-    pass
 
 # ************ Function to display main menu
 def main_menu():
@@ -123,6 +122,4 @@ def book_analysis():
     main_menu()
 
 if __name__ == "__main__":
-    # loop to run our program
-    # when the user decides to exit, the program stops
-    main_menu()     
+    Base.metadata.create_all(engine) 
