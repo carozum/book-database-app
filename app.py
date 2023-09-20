@@ -3,9 +3,10 @@ A console program :
 
 """
 
-import sys
 from models import (Base, session, 
                     Book, engine)
+import csv
+import datetime
 
 # ********** function for data cleaning in the database
 
@@ -31,7 +32,10 @@ def main_menu():
                         \rPlease choose one of the options above.
                         \rA number from 1 to 5.
                         \rPress enter to try again. """)
-        
+
+
+
+
 
 # display the menu inside the search module
 def search_menu():
@@ -111,7 +115,35 @@ def book_analysis():
     print("Total Number of Python books: 8")
     main_menu()
     
+# clean date
+def clean_date(date_str):
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    split_date = date_str.split(' ')
     
+    month = months.index(split_date[0]) + 1
+    day = int(split_date[1][:-1])
+    year = int(split_date[2])
+    date = datetime.date(year, month, day)
+    return date
+
+# import data
+def add_csv():
+    # open file
+    with open('./suggested_books.csv') as csvfile:
+        # Create reader object by passing the file object to reader method
+        data = csv.reader(csvfile)
+        # Iterate over each row in the csv 
+        # file using reader object
+        for row in data:
+            book = Book(
+                title=row[0], 
+                author=row[1], 
+                published_date=clean_date(row[2]), 
+                price=int(row[3]))
+            session.add(book)
+        session.commit()
+
+
 def app():
     app_running = True
     while app_running:
@@ -135,5 +167,7 @@ def app():
 
 if __name__ == "__main__":
     Base.metadata.create_all(engine) 
-    app()
+    # app()
+    #add_csv()
+    clean_date("August 12, 2012")
     
