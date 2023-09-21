@@ -18,7 +18,7 @@ def main_menu():
             \nPROGRAMMING BOOKS
             \r1) Add book
             \r2) View all books
-            \r3) Search for a book
+            \r3) Search for a book by id
             \r4) Book Analysis
             \r5) Exit
 
@@ -125,6 +125,51 @@ def view_books():
     input('\nPress enter to return to the main menu.')
 
 
+def clean_id(id_str, id_list):
+    try:
+        book_id = int(id_str)
+    except ValueError as e:
+        input('''
+            \n******* ID ERROR *****
+            \rThe id should be a number. 
+            \rPress enter to try again
+            \r*********************''')
+        return
+    else:
+        if book_id in id_list:
+            return book_id
+        else:
+            input(f'''
+            \n******* ID ERROR *****
+            \rOptions {id_list} 
+            \rPress enter to try again
+            \r*********************''')
+            return
+
+
+def search_book():
+    # print possible book ids
+    id_options = []
+    for book in session.query(Book):
+        id_options.append(book.id)
+
+    id_error = True
+    while id_error:
+        id_chosen = input(f"""
+                    \nId options :{id_options}
+                    \rWhat is the book's id? """)
+        id_chosen = clean_id(id_chosen, id_options)
+        if type(id_chosen) == int:
+            id_error = False
+
+    the_book = session.query(Book).filter(Book.id == id_chosen).first()
+    print(f"""
+        \n{the_book.title} by {the_book.author}
+        \rPublished: {the_book.published_date}
+        \rPrice: ${the_book.price /100}""")
+    input('\nPress enter to return to the main menu.')
+
+
 def app():
     app_running = True
     while app_running:
@@ -135,7 +180,7 @@ def app():
             case '2':
                 view_books()
             case '3':
-                # search book
+                search_book()
                 pass
             case '4':
                 # analysis
@@ -188,25 +233,6 @@ def edit_book():
 # ************** function to delete a book
 def delete_book():
     print("delete_book function")
-
-
-# ************* function that search for a book
-def search_book():
-    # print possible book ids
-    list_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    print(f"Options : {list_id}")
-    choice = input("What is the book's id? ")
-    try:
-        choice = int(choice)
-        if choice not in list_ids:
-            raise ValueError("You have not entered a correct ID")
-    except ValueError as e:
-        print("You have to enter an integer")
-    else:
-        print("book_title")
-        print("Published: date_published ")
-        print("Current Price: $ price")
-        search_menu()
 
 
 # function that displays books analysis
