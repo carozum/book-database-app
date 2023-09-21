@@ -7,10 +7,10 @@ from models import (Base, session,
                     Book, engine)
 import csv
 import datetime
+import time
 
-# ********** function for data cleaning in the database
 
-# ************ Function to display main menu
+
 def main_menu():
     while True:
         
@@ -34,6 +34,120 @@ def main_menu():
                         \rPress enter to try again. """)
 
 
+def clean_date(date_str):
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    split_date = date_str.split(' ')
+    
+    try:
+        month = months.index(split_date[0]) + 1
+        day = int(split_date[1][:-1])
+        year = int(split_date[2])
+        date = datetime.date(year, month, day)
+    except ValueError:
+        input('''
+              \n******* DATE ERROR *********
+              \rThe date format should include a valid Month Day, Year from the past. 
+              \rEx: January 13, 2003
+              \rPress enter to try again
+              \r************************''')
+        return
+    else:  
+        return date
+
+
+def clean_price(price_str):
+    try: 
+        price_float = float(price_str)
+    except ValueError:
+        input('''
+              \n******* PRICE ERROR *****
+              \rThe price should be a number without a currency symbol. 
+              \rEx: 10.99
+              \rPress enter to try again
+              \r*********************''')
+        return
+    else:
+        return int(price_float * 100)
+
+
+def add_csv():
+    # open file
+    with open('./suggested_books.csv') as csv_file:
+        # Create reader object by passing the file object to reader method
+        data = csv.reader(csv_file)
+        # Iterate over each row in the csv 
+        # file using reader object
+        for row in data:
+            # avoid duplicate books
+            book_in_db = session.query(Book).filter( Book.title == row[0]).one_or_none()
+            if book_in_db == None :
+                new_book = Book(
+                    title=row[0], 
+                    author=row[1], 
+                    published_date=clean_date(row[2]), 
+                    price=clean_price(row[3]))
+                session.add(new_book)
+        session.commit()
+
+
+def add_book():
+    print("Add a New Book")
+    title = input("Book title: ")
+    author = input("Author: ")
+    
+    date_error = True
+    while date_error:
+        date = input("Published Date (Example: January 13, 2023): ")
+        date = clean_date(date)
+        if type(date) == datetime.date:
+            date_error = False
+    
+    price_error = True
+    while price_error:
+        price = clean_price(input("Price (Example: 10.99): "))
+        if type(price) == int:
+            price_error = False
+        
+    new_book = Book(title= title,
+                    author = author,
+                    published_date = date,
+                    price= price)
+    session.add(new_book)
+    session.commit()
+    print("Book added!")
+    time.sleep(1.5)
+
+
+def app():
+    app_running = True
+    while app_running:
+        choice = main_menu()
+        match choice:
+            case '1':
+                add_book()
+                pass
+            case '2':
+                # search book
+                pass
+            case '3':
+                # view book
+                pass
+            case '4':
+                # analysis
+                pass
+            case _:
+                print("GOODBYE")
+                app_running = False
+
+if __name__ == "__main__":
+    Base.metadata.create_all(engine) 
+    add_csv()
+    app()
+    
+    for book in session.query(Book):
+        print(book)
+    
+    
 
 
 
@@ -63,16 +177,6 @@ def search_menu():
             main_menu()
 
 
-# **************** Function to add book to the database
-def add_book():
-    print("Add a New Book")
-    title = input("Book title: ")
-    author = input("Author: ")
-    date_published = input("Published (Example: January 13, 2023): ")
-    price = input("Price (Example: 10.99): ")
-    
-    print("Book added!")
-    main_menu()
 
 def all_books():
     print("all_books function")
@@ -114,70 +218,4 @@ def book_analysis():
     print("Total Number of Books: 14")
     print("Total Number of Python books: 8")
     main_menu()
-    
-# clean date
-def clean_date(date_str):
-    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    split_date = date_str.split(' ')
-    
-    month = months.index(split_date[0]) + 1
-    day = int(split_date[1][:-1])
-    year = int(split_date[2])
-    date = datetime.date(year, month, day)
-    return date
-
-
-def clean_price(price_str):
-    price_float = float(price_str)
-    return int(price_float * 100)
-
-# import data
-def add_csv():
-    # open file
-    with open('./suggested_books.csv') as csvfile:
-        # Create reader object by passing the file object to reader method
-        data = csv.reader(csvfile)
-        # Iterate over each row in the csv 
-        # file using reader object
-        for row in data:
-            # avoid duplicate books
-            book_in_db = session.query(Book).filter( Book.title == row[0]).one_or_none()
-            if book_in_db == None :
-                new_book = Book(
-                    title=row[0], 
-                    author=row[1], 
-                    published_date=clean_date(row[2]), 
-                    price=clean_price(row[3]))
-                session.add(new_book)
-        session.commit()
-
-
-def app():
-    app_running = True
-    while app_running:
-        choice = main_menu()
-        match choice:
-            case '1':
-                # add_book()
-                pass
-            case '2':
-                # search book
-                pass
-            case '3':
-                # view book
-                pass
-            case '4':
-                # analysis
-                pass
-            case _:
-                print("GOODBYE")
-                app_running = False
-
-if __name__ == "__main__":
-    Base.metadata.create_all(engine) 
-    add_csv()
-    
-    for book in session.query(Book):
-        print(book)
-    #app()
     
