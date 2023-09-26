@@ -10,6 +10,7 @@ import datetime
 import time
 
 # *************** Functions to display the different menus
+# TODO : combine the two menu functions to create one menu function
 
 
 def main_menu():
@@ -173,6 +174,8 @@ def view_books():
 
 def update_book(the_book):
 
+    # TODO: find a way to have the user tell you which values they want to change and then only prompt them to change those values instead of asking about each one
+
     print("\n******** EDIT TITLE *********")
     print(f"Current Value: {the_book.title}")
     the_book.title = input("What would you like to change the value to? ")
@@ -200,12 +203,14 @@ def update_book(the_book):
             break
 
     session.commit()
+    print("Book updated.")
+    time.sleep(1.5)
 
 
 def search_book():
     """
     Search on id. 
-    TODO :Add other options to search on author or title or part of the title. Improvement to consider 
+    TODO: Add other options to search on author or title or part of the title. Improvement to consider 
     Includes Update and Delete operations
     """
     id_options = []
@@ -233,8 +238,33 @@ def search_book():
         update_book(the_book)
     elif sub_choice == '2':
         session.delete(the_book)
-        pass
+        session.commit()
+        print("Book deleted.")
+        time.sleep(1.5)
     # else not needed due to the loop in the submenu() function.
+
+# *********** Book analysis
+
+
+def book_analysis():
+    oldest_book = session.query(Book).order_by(Book.published_date).first()
+
+    newest_book = session.query(Book).order_by(
+        Book.published_date.desc()).first()
+
+    total_books = session.query(Book).count()
+
+    books_with_python = session.query(Book).filter(
+        Book.title.like("%Python%")).count()
+
+    print(f"""
+        \n***** BOOK ANALYSIS *****
+        \rOldest book: {oldest_book.title} by {oldest_book.author}
+        \rNewest book: {newest_book.title} by {newest_book.author}
+        \rTotal books: {total_books}
+        \rNumber of Python books: {books_with_python}
+        """)
+    input('Press enter to return to the main menu.')
 
 
 def app():
@@ -249,8 +279,7 @@ def app():
             case '3':
                 search_book()
             case '4':
-                # analysis
-                pass
+                book_analysis()
             case _:
                 print("GOODBYE")
                 app_running = False
