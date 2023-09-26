@@ -9,19 +9,18 @@ import csv
 import datetime
 import time
 
+# *************** Functions to display the different menus
+
 
 def main_menu():
     while True:
-
         print("""
-            
             \nPROGRAMMING BOOKS
             \r1) Add book
             \r2) View all books
             \r3) Search for a book by id
             \r4) Book Analysis
             \r5) Exit
-
             """)
         choice = input("What would you like to do ? ")
         if choice in ['1', '2', '3', '4', '5']:
@@ -32,6 +31,25 @@ def main_menu():
                         \rA number from 1 to 5.
                         \rPress enter to try again. """)
 
+
+def submenu():
+    while True:
+        print("""
+            \n1) Edit book
+            \r2) Delete book
+            \r3) Return to main menu
+            """)
+        choice = input("What would you like to do ? ")
+        if choice in ['1', '2', '3']:
+            return choice
+        else:
+            choice = input("""
+                        \rPlease choose one of the options above.
+                        \rA number from 1 to 3.
+                        \rPress enter to try again. """)
+
+
+# ******************* Functions to clean the user's inputs
 
 def clean_date(date_str):
     months = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -48,8 +66,7 @@ def clean_date(date_str):
             \n******* DATE ERROR *********
             \rThe date format should include a valid Month Day, Year from the past. 
             \rEx: January 13, 2003
-            \rPress enter to try again
-            \r************************''')
+            \rPress enter to try again''')
         return
     else:
         return date
@@ -63,12 +80,33 @@ def clean_price(price_str):
             \n******* PRICE ERROR *****
             \rThe price should be a number without a currency symbol. 
             \rEx: 10.99
-            \rPress enter to try again
-            \r*********************''')
+            \rPress enter to try again''')
         return
     else:
         return int(price_float * 100)
 
+
+def clean_id(id_str, id_list):
+    try:
+        book_id = int(id_str)
+    except ValueError as e:
+        input('''
+            \n******* ID ERROR *****
+            \rThe id should be a number. 
+            \rPress enter to try again''')
+        return
+    else:
+        if book_id in id_list:
+            return book_id
+        else:
+            input(f'''
+            \n******* ID ERROR *****
+            \rOptions {id_list} 
+            \rPress enter to try again''')
+            return
+
+
+# ************* Function to feed the database
 
 def add_csv():
     # open file
@@ -90,6 +128,10 @@ def add_csv():
                 session.add(new_book)
         session.commit()
 
+
+# ************** Functions relating to CRUD operations
+
+# Add entries
 
 def add_book():
     print("Add a New Book")
@@ -119,36 +161,45 @@ def add_book():
     time.sleep(1.5)
 
 
+# Read entries
+
 def view_books():
     for book in session.query(Book):
-        print(f"{book.id} | {book.title} | {book.author}")
+        print(f"{book.id} | {book.title} | {book.author} | {book.published_date.strftime('%B %d, %Y')} | ${book.price /100}")
     input('\nPress enter to return to the main menu.')
 
 
-def clean_id(id_str, id_list):
-    try:
-        book_id = int(id_str)
-    except ValueError as e:
-        input('''
-            \n******* ID ERROR *****
-            \rThe id should be a number. 
-            \rPress enter to try again
-            \r*********************''')
-        return
-    else:
-        if book_id in id_list:
-            return book_id
-        else:
-            input(f'''
-            \n******* ID ERROR *****
-            \rOptions {id_list} 
-            \rPress enter to try again
-            \r*********************''')
-            return
+# Update and delete an entry
+
+def update_book(the_book):
+
+    print("\n******** EDIT TITLE *********")
+    print(f"Current Value: {the_book.title}")
+    the_book.title = input("What would you like to change the value to? ")
+
+    print("\n******** EDIT AUTHOR *********")
+    print(f"Current Value: {the_book.author}")
+    the_book.author = input("What would you like to change the value to? ")
+
+    print("\n******** EDIT DATE *********")
+    print(f"Current Value: {the_book.published_date.strftime('%B %d, %Y')}")
+    the_book.published_date = clean_date(
+        input("What would you like to change the value to? "))
+
+    print("\n******** EDIT PRICE *********")
+    print(f"Current Value: {the_book.price/100}")
+    the_book.price = clean_price(
+        input("What would you like to change the value to? "))
+
+    session.commit()
 
 
 def search_book():
-    # print possible book ids
+    """
+    Search on id. 
+    TODO :Add other options to search on author or title or part of the title. Improvement to consider 
+    Includes Update and Delete operations
+    """
     id_options = []
     for book in session.query(Book):
         id_options.append(book.id)
@@ -167,7 +218,16 @@ def search_book():
         \n{the_book.title} by {the_book.author}
         \rPublished: {the_book.published_date}
         \rPrice: ${the_book.price /100}""")
-    input('\nPress enter to return to the main menu.')
+
+    sub_choice = submenu()
+
+    if sub_choice == '1':
+        update_book(the_book)
+        pass
+    elif sub_choice == '2':
+        # delete_book()
+        pass
+    # else not needed due to the loop in the submenu() function.
 
 
 def app():
@@ -181,7 +241,6 @@ def app():
                 view_books()
             case '3':
                 search_book()
-                pass
             case '4':
                 # analysis
                 pass
@@ -195,50 +254,12 @@ if __name__ == "__main__":
     add_csv()
     app()
 
-    for book in session.query(Book):
-        print(book)
-
-
-# display the menu inside the search module
-def search_menu():
-    print("""
-        
-        
-        1) Edit entry
-        2) Delete entry
-        3) Return to main menu
-        
-        """)
-    choice = input("What would you like to do? ")
-    try:
-        choice = int(choice)
-        if choice not in [1, 2, 3]:
-            raise ValueError("You did not enter 1, 2 or 3")
-    except ValueError as e:
-        print("Enter 1, 2 or 3")
-    else:
-        if choice == 1:
-            edit_book()
-        if choice == 2:
-            delete_book()
-        if choice == 3:
-            main_menu()
-
-
-# *************** function to edit a book
-def edit_book():
-    print("edit_book function")
-
-
-# ************** function to delete a book
-def delete_book():
-    print("delete_book function")
-
-
-# function that displays books analysis
-def book_analysis():
-    print("Newest book: book")
-    print("Oldest book: book")
-    print("Total Number of Books: 14")
-    print("Total Number of Python books: 8")
-    main_menu()
+    # for book in session.query(Book):
+    #    print(book)
+"""
+    %d is the day number (2 digits, prefixed with leading zero's if necessary)
+    %m is the month number (2 digits, prefixed with leading zero's if necessary)
+    %b is the month abbreviation (3 letters)
+    %B is the month name in full (letters)
+    %y is the year number abbreviated (last 2 digits)
+    %Y is the year number full (4 digits)"""
