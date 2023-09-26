@@ -183,13 +183,21 @@ def update_book(the_book):
 
     print("\n******** EDIT DATE *********")
     print(f"Current Value: {the_book.published_date.strftime('%B %d, %Y')}")
-    the_book.published_date = clean_date(
-        input("What would you like to change the value to? "))
+    while True:
+        change = clean_date(
+            input("What would you like to change the value to? "))
+        if type(change) == datetime.date:
+            the_book.published_date = change
+            break
 
     print("\n******** EDIT PRICE *********")
     print(f"Current Value: {the_book.price/100}")
-    the_book.price = clean_price(
-        input("What would you like to change the value to? "))
+    while True:
+        change = clean_price(
+            input("What would you like to change the value to? "))
+        if type(change) == int:
+            the_book.price = change
+            break
 
     session.commit()
 
@@ -223,9 +231,8 @@ def search_book():
 
     if sub_choice == '1':
         update_book(the_book)
-        pass
     elif sub_choice == '2':
-        # delete_book()
+        session.delete(the_book)
         pass
     # else not needed due to the loop in the submenu() function.
 
